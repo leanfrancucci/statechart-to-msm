@@ -1,0 +1,18 @@
+{
+  "name": "statechart-to-msm",
+  "owner": {
+    "name": "Leandro Francucci",
+    "email": "lf@vortexmakes.com"
+  },
+  "metadata": {
+    "description": "statechart-to-msm — Boost.MSM C++ code generation from statecharts for Claude Code"
+  },
+  "plugins": [
+    {
+      "name": "statechart-to-msm",
+      "source": "./",
+      "description": "Generates production-ready Boost.MSM C++ code, unit tests and a CMake project from a statechart diagram",
+      "category": "development"
+    }
+  ]
+}

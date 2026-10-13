@@ -66,3 +66,10 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Claude Code session notes (Remember plugin)
+.remember/

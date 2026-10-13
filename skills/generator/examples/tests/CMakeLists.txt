@@ -1,0 +1,11 @@
+enable_testing()
+include(GoogleTest)
+add_library(GTest::GTest INTERFACE IMPORTED)
+target_link_libraries(GTest::GTest INTERFACE gtest_main gmock_main)
+set(TEST_TARGET ${LEARNING_BOOST_NAME}_test)
+
+file(GLOB SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/test_*.cpp")
+add_executable(${TEST_TARGET} ${SOURCES})
+target_link_libraries(${TEST_TARGET} PRIVATE GTest::GTest objlib${LEARNING_BOOST_NAME})
+target_compile_options(${TEST_TARGET} PRIVATE -Wall -Werror)
+gtest_add_tests(TARGET ${TEST_TARGET} TEST_SUFFIX .noArgs TEST_LIST noArgsTests)

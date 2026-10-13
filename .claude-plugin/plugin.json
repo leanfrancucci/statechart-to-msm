@@ -1,0 +1,25 @@
+{
+  "name": "statechart-to-msm",
+  "displayName": "Statechart to Boost.MSM",
+  "version": "1.0.0",
+  "description": "Generates production-ready Boost.MSM C++ code, unit tests and a CMake project from a statechart diagram",
+  "author": {
+    "name": "Leandro Francucci",
+    "email": "lf@vortexmakes.com",
+    "url": "https://www.linkedin.com/in/francuccileandro/"
+  },
+  "homepage": "https://github.com/leanfrancucci/statechart-to-msm",
+  "repository": "https://github.com/leanfrancucci/statechart-to-msm",
+  "documentationUrl": "https://github.com/leanfrancucci/statechart-to-msm#readme",
+  "supportUrl": "https://github.com/leanfrancucci/statechart-to-msm/issues",
+  "license": "MIT",
+  "keywords": [
+    "boost-msm",
+    "state-machine",
+    "statechart",
+    "uml",
+    "cpp",
+    "code-generation",
+    "cmake"
+  ]
+}
