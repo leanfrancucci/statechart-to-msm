@@ -42,9 +42,13 @@ Writing it before Step 2 is safe: the scaffolding script never creates or overwr
 * **Entry Actions**: Use `None` if empty.
 * **Exit Actions**: Use `None` if empty.
 * **Transition Trigger**: The event that triggers a transition. Use `None (Anonymous)` for event-less transitions, and a dash `—` if no outgoing transitions exist.
-* **Guard**: Use `None` if empty.
-* **Action Effect**: Use `None` if empty.
-* **Next State**: The destination state of the transition. Use a dash `—` if no outgoing transitions are defined.
+* **Guard**: Use `None` if empty. For the `[else]` branch of a choice, write `else`.
+* **Action Effect**: Use `None` if empty, including on a `Deferred` row.
+* **Next State**: The destination state of the transition. Use a dash `—` if no outgoing transitions are defined. Write the bare state name with no annotations, except for these two keywords:
+  * `Internal`: an internal transition, which runs its effect without exiting or re-entering the state.
+  * `Deferred`: the state defers the event in Transition Trigger.
+
+  A transition from outside a composite state into one of its substates names the substate itself (e.g., `S41`, not `S4`); the substate's Ancestor column already shows that it is an entry into the composite.
 
 #### Reading the Diagram
 
@@ -135,7 +139,7 @@ Map each table Type as follows:
 | Simple State | `struct S : msm::front::state<>` |
 | Composite State | Nested `struct S_ : msm::front::state_machine_def<S_>` plus `typedef msm::back::state_machine<S_> S;` |
 | Initial Pseudo-state | `typedef S initial_state;` in the owning (sub)machine. An initial transition with an effect needs a transient state with an anonymous transition (see `Mgr` in examples.md). |
-| Choice Pseudo-state | A plain state with anonymous rows (`Event` = `none`), one per branch, each with its guard. Guards must be mutually exclusive. |
+| Choice Pseudo-state | A plain state with anonymous rows (`Event` = `none`), one per branch, each with its guard. Guards must be mutually exclusive; implement an `else` guard as the negation of the other branches' guards. |
 | History Pseudo-state | Back-end policy: `msm::back::state_machine<S_, msm::back::ShallowHistory<mpl::vector<Ev>>>` or `AlwaysHistory` |
 | Final State | `msm::front::terminate_state<>` at the top level. Inside a composite, use an `exit_pseudo_state<Ev>` and `S::exit_pt<...>` row (see `SimpleState`). |
 | Exit Point | `struct X : msm::front::exit_pseudo_state<Ev>` in the composite, plus a parent row from `S::exit_pt<S_::X>` (see `SimpleState`) |
