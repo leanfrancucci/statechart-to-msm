@@ -24,8 +24,16 @@ Claude Code plugin that generates production-ready Boost.MSM C++ code, unit test
 ## Quick Start
 
 1. Install the [prerequisites](#prerequisites).
-2. Add the marketplace and install the plugin (Claude Code 2.1.275 or later can do both in one
-   step with `/plugin install statechart-to-msm --marketplace leanfrancucci/statechart-to-msm`):
+2. Install the plugin. In a Claude Code session (v2.1.275 or later), add the marketplace and
+   install in one step, using either the GitHub shorthand or the full repository URL:
+
+   ```text
+   /plugin install statechart-to-msm --marketplace leanfrancucci/statechart-to-msm
+   /plugin install statechart-to-msm --marketplace https://github.com/leanfrancucci/statechart-to-msm.git
+   ```
+
+   Append `#v1.0.0` to either source to pin a release. On earlier versions, or from your shell,
+   add the marketplace first and then install:
 
    ```sh
    claude plugin marketplace add leanfrancucci/statechart-to-msm
