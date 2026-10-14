@@ -3,6 +3,16 @@
 All notable changes to this plugin are documented here. This project uses
 [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/), [Semantic Versioning](https://semver.org/) and [Common Changelog](https://common-changelog.org/).
 
+## [1.2.1] - 2026-10-14
+
+### Added
+
+- Document what the plugin runs, which files it writes and what it downloads ([`ce093bc`](https://github.com/leanfrancucci/statechart-to-msm/commit/ce093bc))
+
+### Fixed
+
+- Locate the scaffolding script through `${CLAUDE_SKILL_DIR}`, which every Claude app resolves ([`22078d2`](https://github.com/leanfrancucci/statechart-to-msm/commit/22078d2))
+
 ## [1.2.0] - 2026-10-14
 
 ### Changed
@@ -35,6 +45,7 @@ All notable changes to this plugin are documented here. This project uses
 
 🌱 Initial release.
 
+[1.2.1]: https://github.com/leanfrancucci/statechart-to-msm/releases/tag/v1.2.1
 [1.2.0]: https://github.com/leanfrancucci/statechart-to-msm/releases/tag/v1.2.0
 [1.1.0]: https://github.com/leanfrancucci/statechart-to-msm/releases/tag/v1.1.0
 [1.0.0]: https://github.com/leanfrancucci/statechart-to-msm/releases/tag/v1.0.0

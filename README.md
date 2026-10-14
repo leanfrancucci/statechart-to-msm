@@ -33,7 +33,7 @@ Claude Code plugin that generates production-ready Boost.MSM C++ code, unit test
    /plugin install statechart-to-msm --marketplace https://github.com/leanfrancucci/statechart-to-msm.git
    ```
 
-   Append `#v1.2.0` to either source to pin a release. On earlier versions, or from your shell,
+   Append `#v1.2.1` to either source to pin a release. On earlier versions, or from your shell,
    add the marketplace first and then install:
 
    ```sh
