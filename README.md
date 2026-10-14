@@ -15,6 +15,7 @@ Claude Code plugin that generates production-ready Boost.MSM C++ code, unit test
   - [Keeping statechart-to-msm up to date](#keeping-statechart-to-msm-up-to-date)
   - [Loading a local clone](#loading-a-local-clone)
 - [Prerequisites](#prerequisites)
+- [What the Plugin Runs](#what-the-plugin-runs)
 - [Plugins Integrations](#plugins-integrations)
   - [clangd-lsp](#clangd-lsp)
   - [SocratiCode](#socraticode)
@@ -92,6 +93,41 @@ sudo apt install build-essential cmake python3 libboost-dev clang-format libgtes
 
 Without `libgtest-dev`, the first CMake configure step needs network access to fetch
 GoogleTest.
+
+## What the Plugin Runs
+
+The plugin contains one skill and no hooks, MCP servers or executables. It collects no data and
+sends nothing to any service. Everything below runs through Claude Code's normal tools, so each
+command and file write goes through your permission settings.
+
+**Commands run on your machine**
+
+| When | Command | Purpose |
+| :--- | :--- | :--- |
+| Before scaffolding | `python3 --version`, `cmake --version`, `c++ --version`, `clang-format --version` | Check that the toolchain is installed |
+| Step 2 | `python3 <plugin>/skills/generator/scripts/scaffold_statemachine.py` | Generate the project from the bundled templates. Standard library only, no network access |
+| Step 5 | `clang-format -i` on the generated sources | Format the generated code |
+| Step 5 | `cmake`, `cmake --build`, `ctest` | Configure, build and test the generated project |
+| Step 5 | `./<StateMachineName>/build/<StateMachineName>` | Run the generated interactive application |
+
+**Files written**
+
+Only inside `<StateMachineName>/` in the directory where you run it (or under `--output-dir`):
+the topology table `<StateMachineName>.md`, the generated sources and tests, and the `build/`
+directory. The scaffolding script refuses to overwrite files that already exist there unless it
+is run with `--force`.
+
+**Network access**
+
+| What | When | Source |
+| :--- | :--- | :--- |
+| GoogleTest v1.14.0 source archive | First CMake configure, only if GoogleTest is not installed | `https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz` |
+| Boost.MSM documentation | Only when the skill is unsure about a Boost.MSM API | `https://www.boost.org/doc/libs/<version>/libs/msm/doc/HTML/` |
+
+**Other plugins**
+
+If [SocratiCode](#socraticode) is installed, the skill uses its search tools to explore your
+project. SocratiCode's own behaviour, such as indexing, is described in its documentation.
 
 ## Plugins Integrations
 
