@@ -46,9 +46,12 @@ Claude Code plugin that generates production-ready Boost.MSM C++ code, unit test
    `generator` skill loads on its own; to invoke it explicitly, use
    `/statechart-to-msm:generator`.
 
-The skill shows the topology table it read from the diagram, saves it to
-`<StateMachineName>/<StateMachineName>.md`, and then scaffolds, implements, builds and tests a
-CMake project in `<StateMachineName>/`.
+The skill accepts the diagram as an image (e.g. PNG or JPEG) only, not as text or PlantUML. It
+first shows the topology table it read from the diagram and saves it to
+`<StateMachineName>/<StateMachineName>.md`, then **stops and waits for you to confirm or correct
+the table**. Once you confirm, it scaffolds, implements, builds and tests a CMake project in
+`<StateMachineName>/`. In a non-interactive run (`claude -p`), say in the prompt that the table
+needs no confirmation, or the run stops after the table.
 
 ### Keeping statechart-to-msm up to date
 
@@ -105,13 +108,13 @@ for `.c`, `.h`, `.cpp` and `.hpp` files:
 ```
 
 The plugin only launches clangd, so install the [`clangd`](https://clangd.llvm.org/installation)
-binary too, on the host or in the builder container where the code is edited (e.g.
+binary too, on the machine or in the container where the code is edited (e.g.
 `sudo apt install clangd` on Ubuntu/Debian).
 
 clangd needs the compilation database of each generated project. The scaffolded
 `CMakeLists.txt` already exports it (`CMAKE_EXPORT_COMPILE_COMMANDS`), and clangd finds
-`<StateMachineName>/build/compile_commands.json` on its own. For other build directories, see
-"Generate compile DB for clangd" in `skills/generator/SKILL.md`.
+`<StateMachineName>/build/compile_commands.json` on its own. For another build directory, link
+its database from the project root: `ln -sf <dir>/compile_commands.json <StateMachineName>/`.
 
 ### SocratiCode
 
@@ -158,9 +161,10 @@ This walk-through uses `SimpleState.png`, one of the reference diagrams shipped 
 
 3. **Review the topology table.** The skill first translates the diagram into a table with one
    row per state and transition (type, parent state, entry/exit actions, trigger, guard, effect,
-   next state). It shows the table and saves it to `SimpleState/SimpleState.md`. Check it
-   against the diagram and correct any misread element before going on: the code is built from
-   this table, not from the image.
+   next state). It shows the table, saves it to `SimpleState/SimpleState.md`, and waits for
+   you. Check it against the diagram, correct any misread element, and confirm it: the skill
+   does not scaffold anything before you do, because the code is built from this table, not from
+   the image.
 
 4. **Scaffolding.** The skill runs `scripts/scaffold_statemachine.py`, which creates a project
    that already builds and passes its placeholder tests:

@@ -2,7 +2,7 @@
 
 If unsure about a Boost.MSM concept or API, **DO NOT GUESS**:
 
-1. Read the headers of the installed Boost, e.g. `/usr/include/boost/msm/front/` (front-ends, states, functor rows) and `/usr/include/boost/msm/back/state_machine.hpp` (back-end, history policies, flags).
+1. Read the headers of the installed Boost. Their location depends on the system: `/usr/include/boost/` on Debian/Ubuntu, otherwise the `Boost_DIR` that CMake resolved (see `build/CMakeCache.txt`). For example, `/usr/include/boost/msm/front/` (front-ends, states, functor rows) and `/usr/include/boost/msm/back/state_machine.hpp` (back-end, history policies, flags).
 2. Fetch the official documentation that matches the installed version (check `BOOST_LIB_VERSION` in `/usr/include/boost/version.hpp`), e.g. `https://www.boost.org/doc/libs/1_83_0/libs/msm/doc/HTML/ch03.html` for 1.83.
 
 ## Exploring the user's project with SocratiCode

@@ -28,6 +28,9 @@ using namespace msm::front;
  */
 struct SimpleState_ : public msm::front::state_machine_def<SimpleState_>
 {
+    // Enables the Defer action in the transition table: a row
+    // Row<S, Ev, none, Defer, none> defers Ev while S is active, and the
+    // event is replayed after the next transition
     typedef int activate_deferred_events;
 
     // State Machine Attributes
@@ -59,10 +62,6 @@ struct SimpleState_ : public msm::front::state_machine_def<SimpleState_>
 
         typedef mpl::vector1<S1Flag> flag_list;
 
-        // If the EventE event arrives in this state, defer it until a state
-        // handles it or rejects it
-        typedef mpl::vector<Event::EventE> deferred_events;
-
         template <class Event, class FSM>
         void on_entry(const Event& event, FSM& fsm)
         {
@@ -78,10 +77,6 @@ struct SimpleState_ : public msm::front::state_machine_def<SimpleState_>
     struct S2 : public msm::front::state<>
     {
         typedef mpl::vector1<S2Flag> flag_list;
-
-        // If the EventE event arrives in this state, defer it until a state
-        // handles it or rejects it
-        typedef mpl::vector<Event::EventE> deferred_events;
     };
 
     struct S3 : public msm::front::state<>

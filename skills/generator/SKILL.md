@@ -1,13 +1,20 @@
 ---
 name: generator
-description: This skill should be used when the user asks to "generate C++ code from a state diagram", "convert this statechart to Boost.MSM", "implement this UML state machine in C++", or provides a statechart or state diagram image and wants Boost.MSM code, an active object, unit tests or a CMake project for it.
+description: This skill should be used when the user provides an image of a statechart, UML state machine or state diagram and asks to implement, generate or convert it to C++, e.g. "implement this state diagram in C++", "convert this statechart to Boost.MSM", "generate Boost MSM code for this FSM", "turn this hierarchical state machine into an active object with GoogleTest tests and CMake". Not for other state machine libraries (Boost.SML, Qt SCXML), non-C++ targets, or diagrams given only as text or PlantUML.
 ---
 
 # Generating Boost.MSM C++ Code from State Diagrams
 
 ## Overview
 
-This guideline provides a step-by-step, fail-safe workflow to translate any state diagram into a warning-free, highly cohesive state machine based on the Boost.MSM library.
+Turn an image of a state diagram into a Boost.MSM state machine, an active object around it, GoogleTest unit tests and a CMake project that builds without warnings. The input must be an image (e.g., PNG or JPEG); if the user gives the diagram only as text or PlantUML, ask for an image.
+
+## Requirements
+
+Steps 2 and 5 run on the user's machine and need `python3`, `cmake` 3.16 or later, a C++14 compiler, the Boost headers (1.70 or later) and `clang-format`. Before Step 2, check them (`python3 --version`, `cmake --version`, `c++ --version`, `clang-format --version`, and look for `boost/msm/` under the compiler's include paths, e.g. `/usr/include/boost/msm/`).
+
+* If `python3` is missing, the project cannot be scaffolded: tell the user what to install and stop after Step 1.
+* If only the build tools or Boost are missing, complete Steps 1 to 4, then tell the user which tools are missing and that Step 5 must run on a machine that has them.
 
 ---
 
@@ -20,9 +27,9 @@ Before writing any code, analyze the input statechart or state diagram image and
 | States / Pseudo-state Names | Type | Ancestor | Entry Actions | Exit Actions | Transition Trigger | Guard | Action Effect | Next State |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 
-> Note: Show the generated table to the user.
+> Show the table to the user, then **stop and wait** for them to confirm or correct it. Do not start Step 2 until the user confirms: the code is built from this table, and a misread diagram is cheapest to fix here. Only if the user's request already says to proceed without confirmation (e.g., a non-interactive run), say so and continue.
 
-Then save the same table to `<StateMachineName>/<StateMachineName>.md`, where `<StateMachineName>` is the CamelCase name later passed to the scaffolding script and the directory is the one it will create (under `--output-dir`, if given; e.g., `SelectiveStart/SelectiveStart.md`). Use this layout:
+When you show the table, also save it to `<StateMachineName>/<StateMachineName>.md`, where `<StateMachineName>` is the CamelCase name later passed to the scaffolding script and the directory is the one it will create (under `--output-dir`, if given; e.g., `SelectiveStart/SelectiveStart.md`). Use this layout:
 
 ```markdown
 # <StateMachineName> Topology Table
@@ -37,18 +44,39 @@ Writing it before Step 2 is safe: the scaffolding script never creates or overwr
 #### Schema Formatting Rules
 
 * **States / Pseudo-state Names**: Name of the state, substate, or pseudo-state (e.g., `[*]`, `S1`, `Idle`).
-* **Type**: Type of state (e.g., `Initial Pseudo-state`, `Simple State`, `Composite State`, `Choice Pseudo-state`, `History Pseudo-state`, `Final State`).
+* **Type**: Type of state (e.g., `Initial Pseudo-state`, `Simple State`, `Composite State`, `Choice Pseudo-state`, `History Pseudo-state`, `Entry Point`, `Exit Point`, `Final State`).
 * **Ancestor**: The parent state encapsulating this state. If the state is at the top-level (direct child of the main statechart), use a dash `—`.
 * **Entry Actions**: Use `None` if empty.
 * **Exit Actions**: Use `None` if empty.
-* **Transition Trigger**: The event that triggers a transition. Use `None (Anonymous)` for event-less transitions, and a dash `—` if no outgoing transitions exist.
+* **Transition Trigger**: The event that triggers a transition, written as the CamelCase name it gets in code (`Event::<Name>`), e.g. diagram `evStart` → `EvStart`, `start()` → `Start`. Add its parameters in parentheses when the diagram shows them (e.g., `EventB(name, id)`). Use `None (Anonymous)` for event-less transitions, and a dash `—` if no outgoing transitions exist.
 * **Guard**: Use `None` if empty. For the `[else]` branch of a choice, write `else`.
-* **Action Effect**: Use `None` if empty, including on a `Deferred` row.
+* **Action Effect**: Use `None` if empty. On a deferred event's row, write the keyword `Defer`, which is the action of its Boost.MSM row.
 * **Next State**: The destination state of the transition. Use a dash `—` if no outgoing transitions are defined. Write the bare state name with no annotations, except for these two keywords:
   * `Internal`: an internal transition, which runs its effect without exiting or re-entering the state.
-  * `Deferred`: the state defers the event in Transition Trigger.
+  * `Deferred`: the state defers the event in Transition Trigger. Its Action Effect is always `Defer`.
 
-  A transition from outside a composite state into one of its substates names the substate itself (e.g., `S41`, not `S4`); the substate's Ancestor column already shows that it is an entry into the composite.
+  A transition from outside a composite state into one of its substates names the substate itself (e.g., `S41`, not `S4`); the substate's Ancestor column already shows that it is an entry into the composite. A self-transition, which exits and re-enters the state and so runs its exit and entry actions, names the state itself; use `Internal` only when the state is not exited.
+
+Write one row per outgoing transition, and repeat the state's Name, Type, Ancestor, Entry Actions and Exit Actions on every row of that state. A state without outgoing transitions gets exactly one row, with `—` as Transition Trigger and Next State. Every `—` in the table is an em dash (U+2014), not a hyphen.
+
+#### Example Table
+
+A top-level state `Idle` with a deferred event, an internal transition and a direct entry into a substate; a choice with an `else` branch; and a composite `Busy` with a self-transition:
+
+| States / Pseudo-state Names | Type | Ancestor | Entry Actions | Exit Actions | Transition Trigger | Guard | Action Effect | Next State |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `[*]` | Initial Pseudo-state | — | None | None | None (Anonymous) | None | None | Idle |
+| Idle | Simple State | — | None | None | Start | None | None | Check |
+| Idle | Simple State | — | None | None | Tick | None | Defer | Deferred |
+| Idle | Simple State | — | None | None | Ping | None | reply() | Internal |
+| Idle | Simple State | — | None | None | Boost | None | None | Fast |
+| Check | Choice Pseudo-state | — | None | None | None (Anonymous) | isReady() | None | Busy |
+| Check | Choice Pseudo-state | — | None | None | None (Anonymous) | else | None | Idle |
+| Busy | Composite State | — | startMotor() | stopMotor() | Stop | None | None | Idle |
+| Busy | Composite State | — | startMotor() | stopMotor() | Reset | None | None | Busy |
+| `[*]` | Initial Pseudo-state | Busy | None | None | None (Anonymous) | None | None | Slow |
+| Slow | Simple State | Busy | None | None | Tick | None | None | Fast |
+| Fast | Simple State | Busy | None | None | — | None | None | — |
 
 #### Reading the Diagram
 
@@ -118,7 +146,12 @@ Replace every `TODO` of the skeleton with the content of the topology table:
 1. Replace the placeholder `Idle` state with one `msm::front::state<>` per simple state. Implement each Entry/Exit Action in `on_entry`/`on_exit`. Trace through `fsm.m_logger`, so tests can assert on the trace order.
 2. Add one functor per Action Effect and one `bool` functor per Guard.
    Write every `on_entry`/`on_exit` and every functor out in full, even when several look alike. Do not generate them with preprocessor macros (e.g. `TRACE_STATE(S1)`): macros hide the code from the reader, the debugger and clangd.
-3. Add one `Row<Source, Event::Trigger, Target, Action, Guard>` per table row, using `none` for empty cells. The skeleton defines `Row` and `none` shorthands, visible in nested composites too.
+3. Turn the table rows into transition table rows. The skeleton defines `Row`, `none` and `Defer` shorthands, visible in nested composites too.
+   * Add one `Row<Source, Event::Trigger, Target, Action, Guard>` per table row that has a transition, using `none` for empty cells. Skip rows whose Transition Trigger is `—`. Initial Pseudo-state rows become `initial_state`, not a Row.
+   * Put each Row in the transition table of the (sub)machine named in its source state's Ancestor column; for `—`, the top-level table.
+   * A Row can only target states of its own machine. When Next State has another Ancestor than the source: entering a composite targets `S::direct<S_::Sub>`; leaving one needs an Exit Point (`exit_pseudo_state` in the composite, and an `S::exit_pt<S_::X>` row in the parent).
+   * A deferred row (Action Effect `Defer`, Next State `Deferred`) becomes `Row<S, Event::Ev, none, Defer, none>`, and the (sub)machine whose table holds it needs `typedef int activate_deferred_events;`. MSM replays a deferred event after the next transition.
+
    Start every transition table with the column header below, and align each row to its columns (keep the table between `// clang-format off` and `// clang-format on`):
 
    ```cpp
@@ -129,7 +162,7 @@ Replace every `TODO` of the skeleton with the content of the topology table:
        Row < Running , Event::Stop  , Idle    , none                , none                 >
    > {};
    ```
-4. Add a flag (`struct XFlag {}` plus `typedef mpl::vector1<XFlag> flag_list;`) to every state that the active object or the tests must query.
+4. Add a flag (`struct XFlag {}` plus `typedef mpl::vector1<XFlag> flag_list;`) to every stable state (not to pseudo-states), so the tests can check the state each row reaches.
 5. Add any event data that guards or actions read to `src/Event.hpp`.
 
 Map each table Type as follows:
@@ -145,10 +178,10 @@ Map each table Type as follows:
 | Exit Point | `struct X : msm::front::exit_pseudo_state<Ev>` in the composite, plus a parent row from `S::exit_pt<S_::X>` (see `SimpleState`) |
 | Entry Point / transition into a substate | Target substate also inherits `msm::front::explicit_entry<0>`; the row targets `S::direct<S_::Sub>` (see `SimpleState`) |
 | Orthogonal regions | `typedef mpl::vector<R1Initial, R2Initial> initial_state;` |
-| Internal transition | Row with `none` as Next State |
-| Deferred event | `typedef mpl::vector<Ev> deferred_events;` in the state |
+| Internal transition (`Internal`) | Row with `none` as Target |
+| Deferred event (`Defer` / `Deferred`) | `Row<S, Event::Ev, none, Defer, none>`, plus `typedef int activate_deferred_events;` in the (sub)machine (see `SimpleState`) |
 
-Then rewrite `tests/test_<StateMachineName>.cpp`. Write at least one test per table row (target state reached, entry/exit/effect traces in order, every guard branch), plus the events a state must ignore. Update `main.cpp` for events that carry data and cannot be default-constructed.
+Then rewrite `tests/test_<StateMachineName>.cpp`. Write at least one test per table row (target state reached, entry/exit/effect traces in order, every guard branch), plus the events a state must ignore. For a `Deferred` row, assert that the event has no effect in the deferring state and takes effect after the next transition (see `DeferingMechanism` in `SimpleState`'s tests). Update `main.cpp` for events that carry data and cannot be default-constructed.
 
 ---
 
@@ -166,16 +199,9 @@ ctest --test-dir <StateMachineName>/build --output-on-failure
 
 The build treats warnings as errors, so the code is not done until it compiles cleanly and every test passes. In the interactive application, press the keys listed at startup to stimulate the state machine, and check transitions and entry/exit/effect traces in real time.
 
-#### Generate compile DB for clangd
+#### Compilation database for clangd
 
-When editing from the host, run the following command on the host; otherwise run it within the builder container. Run it from the `<StateMachineName>/` directory:
-
-```sh
-cmake -H. -BDebug \
-    -DCMAKE_BUILD_TYPE=Debug \
-    -DCMAKE_EXPORT_COMPILE_COMMANDS=YES && \
-    ln -s Debug/compile_commands.json .
-```
+The build exports `compile_commands.json` to `<StateMachineName>/build/`, where clangd finds it. For another build directory, link it from the project root: `ln -sf <dir>/compile_commands.json <StateMachineName>/`.
 
 ---
 
@@ -183,7 +209,7 @@ cmake -H. -BDebug \
 
 | Mistake | Fix |
 | :--- | :--- |
-| Compile error deep inside `boost/mpl` with more than 20 rows or events | The scaffolded CMakeLists.txt raises the MPL limits to 50. Split larger tables into submachines. |
+| Compile error deep inside `boost/mpl` with more than 20 rows or events | The scaffolded CMakeLists.txt raises the MPL limits to 50, the most MPL supports. Split a table with more than 50 rows into submachines. |
 | Action or guard calls `isFlagActive()`/`waitForFlag()` of the active object | Deadlock: dispatch holds the state machine mutex. Read the state through the `fsm` argument instead. |
 | Logger access crashes inside a composite state | `fsm` there is the composite itself. Give its front-end a `Log* m_logger` and set `m_logger = fsm.m_logger;` in its `on_entry`, which runs before its substates are entered. |
 | Test expects `no_transition()` when a guard rejects | Boost.MSM ignores the event silently. Assert that the state and the trace are unchanged. |

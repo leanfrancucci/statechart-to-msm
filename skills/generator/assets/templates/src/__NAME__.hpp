@@ -45,6 +45,9 @@ struct {{NAME}}_ : public msm::front::state_machine_def<{{NAME}}_>
 
     // Shorthands for the transition tables, visible to nested composites too
     typedef msm::front::none none;
+    // Action of a Row that defers its event; the machine whose table uses it
+    // also needs: typedef int activate_deferred_events;
+    typedef msm::front::Defer Defer;
     template <class Source, class Event, class Target, class Action = none, class Guard = none>
     using Row = msm::front::Row<Source, Event, Target, Action, Guard>;
 
