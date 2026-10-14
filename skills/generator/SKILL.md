@@ -98,10 +98,10 @@ Elements drawn in red and struck through are the original UML intent that Boost.
 
 ### Step 2: Scaffold the Project
 
-Do not create the project files by hand. Run the bundled scaffolding script, located at `scripts/scaffold_statemachine.py` under this skill's base directory:
+Do not create the project files by hand. Run the bundled scaffolding script, `scripts/scaffold_statemachine.py` in this skill's directory:
 
 ```bash
-python3 <skill_base_dir>/scripts/scaffold_statemachine.py <StateMachineName> \
+python3 ${CLAUDE_SKILL_DIR}/scripts/scaffold_statemachine.py <StateMachineName> \
     --events <Event1>,<Event2>,... [--output-dir <dir>] [--force]
 ```
 
