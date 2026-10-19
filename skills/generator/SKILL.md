@@ -229,6 +229,6 @@ The build exports `compile_commands.json` to `<StateMachineName>/build/`, where 
 ## Additional Resources
 
 * Boost.MSM documentation and API lookup, and exploring the user's project
-  with SocratiCode: [reference.md](reference.md)
+  with SocratiCode and CodeGraph: [reference.md](reference.md)
 * Reference examples and when to use each: [examples.md](examples.md)
 * Project templates used by the script: `assets/templates/`
