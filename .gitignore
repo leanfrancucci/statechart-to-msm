@@ -73,3 +73,6 @@ __pycache__/
 
 # Claude Code session notes (Remember plugin)
 .remember/
+
+# CodeGraph index (local to each machine)
+.codegraph/
