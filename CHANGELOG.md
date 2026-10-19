@@ -3,6 +3,13 @@
 All notable changes to this plugin are documented here. This project uses
 [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/), [Semantic Versioning](https://semver.org/) and [Common Changelog](https://common-changelog.org/).
 
+## [1.4.0] - 2026-10-19
+
+### Added
+
+- Explore the user's project with CodeGraph, when available, for structural questions, and say when to use it and when SocratiCode ([`8c05d8a`](https://github.com/leanfrancucci/statechart-to-msm/commit/8c05d8a))
+- Document CodeGraph as an optional integration, with its install script, MCP registration and per-project indexing ([`4baebcc`](https://github.com/leanfrancucci/statechart-to-msm/commit/4baebcc), [`8c05d8a`](https://github.com/leanfrancucci/statechart-to-msm/commit/8c05d8a))
+
 ## [1.3.0] - 2026-10-19
 
 ### Added
@@ -53,6 +60,7 @@ All notable changes to this plugin are documented here. This project uses
 
 🌱 Initial release.
 
+[1.4.0]: https://github.com/leanfrancucci/statechart-to-msm/releases/tag/v1.4.0
 [1.3.0]: https://github.com/leanfrancucci/statechart-to-msm/releases/tag/v1.3.0
 [1.2.1]: https://github.com/leanfrancucci/statechart-to-msm/releases/tag/v1.2.1
 [1.2.0]: https://github.com/leanfrancucci/statechart-to-msm/releases/tag/v1.2.0
