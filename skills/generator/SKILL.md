@@ -57,6 +57,8 @@ Writing it before Step 2 is safe: the scaffolding script never creates or overwr
 
   A transition from outside a composite state into one of its substates names the substate itself (e.g., `S41`, not `S4`); the substate's Ancestor column already shows that it is an entry into the composite. A self-transition, which exits and re-enters the state and so runs its exit and entry actions, names the state itself; use `Internal` only when the state is not exited.
 
+  A history pseudo-state gets its own row, named `H` (`H1`, `H2`, ... when the diagram has several), with Type `History Pseudo-state` and its composite as Ancestor. A transition into the history names it as Next State (e.g., `H`). If the history has a default transition, the `H` row has Transition Trigger `None (Anonymous)` and that transition's target as Next State; otherwise it has `—` for both.
+
 Write one row per outgoing transition, and repeat the state's Name, Type, Ancestor, Entry Actions and Exit Actions on every row of that state. A state without outgoing transitions gets exactly one row, with `—` as Transition Trigger and Next State. Every `—` in the table is an em dash (U+2014), not a hyphen.
 
 #### Example Table
@@ -87,12 +89,15 @@ Identify each element's Type by its UML shape, not by its name or position:
 | Filled black circle | `Initial Pseudo-state` |
 | Rounded rectangle | `Simple State`, or `Composite State` when it contains states |
 | Diamond | `Choice Pseudo-state` |
-| Circle with `H` / `H*` | `History Pseudo-state` (shallow / deep) |
+| Circle with `H` | `History Pseudo-state` (shallow) |
+| Circle with `H*` | Deep history: not supported by Boost.MSM (see below) |
 | Circle with an `X` on a composite's border | `Exit Point` |
 | Hollow circle on a composite's border | `Entry Point` |
 | Filled circle inside a ring (bull's-eye) | `Final State` |
 
 Elements drawn in red and struck through are the original UML intent that Boost.MSM cannot express directly; the black elements next to them are the intended implementation. Leave the red elements out of the table.
+
+Boost.MSM has no deep history (`H*`): its history policies are shallow, so they restore only the last active substate of one composite, and a restored nested composite restarts at its initial state. If the diagram has a deep history, tell the user in Step 1 that Boost.MSM does not support it, and ask whether to implement it as a shallow history (`H`) instead. Do not continue until the user decides.
 
 ---
 
@@ -135,7 +140,7 @@ It generates a project that builds, runs and passes its tests before any impleme
 
 ### Step 3: Consult Reference Examples
 
-Before writing the implementation, consult the examples listed in [examples.md](examples.md) that match the features identified in the table from Step 1 (e.g., choice pseudo-states, hierarchy, deferred events, initial-transition actions).
+Before writing the implementation, consult the examples listed in [examples.md](examples.md) that match the features identified in the table from Step 1 (e.g., choice pseudo-states, hierarchy, deferred events, history, initial-transition actions).
 
 ---
 
@@ -150,6 +155,7 @@ Replace every `TODO` of the skeleton with the content of the topology table:
    * Add one `Row<Source, Event::Trigger, Target, Action, Guard>` per table row that has a transition, using `none` for empty cells. Skip rows whose Transition Trigger is `—`. Initial Pseudo-state rows become `initial_state`, not a Row.
    * Put each Row in the transition table of the (sub)machine named in its source state's Ancestor column; for `—`, the top-level table.
    * A Row can only target states of its own machine. When Next State has another Ancestor than the source: entering a composite targets `S::direct<S_::Sub>`; leaving one needs an Exit Point (`exit_pseudo_state` in the composite, and an `S::exit_pt<S_::X>` row in the parent).
+   * A row whose Next State is a history pseudo-state targets the history's composite (e.g., `Row<Paused, Event::Resume, Operation, none, none>`). The `H` row itself is not a Row; it becomes the composite's history policy (see History Pseudo-state below).
    * A deferred row (Action Effect `Defer`, Next State `Deferred`) becomes `Row<S, Event::Ev, none, Defer, none>`, and the (sub)machine whose table holds it needs `typedef int activate_deferred_events;`. MSM replays a deferred event after the next transition.
 
    Start every transition table with the column header below, and align each row to its columns (keep the table between `// clang-format off` and `// clang-format on`):
@@ -173,7 +179,7 @@ Map each table Type as follows:
 | Composite State | Nested `struct S_ : msm::front::state_machine_def<S_>` plus `typedef msm::back::state_machine<S_> S;` |
 | Initial Pseudo-state | `typedef S initial_state;` in the owning (sub)machine. An initial transition with an effect needs a transient state with an anonymous transition (see `Mgr` in examples.md). |
 | Choice Pseudo-state | A plain state with anonymous rows (`Event` = `none`), one per branch, each with its guard. Guards must be mutually exclusive; implement an `else` guard as the negation of the other branches' guards. |
-| History Pseudo-state | Back-end policy: `msm::back::state_machine<S_, msm::back::ShallowHistory<mpl::vector<Ev>>>` or `AlwaysHistory` |
+| History Pseudo-state | A back-end policy of its composite, chosen by how the composite is entered. If the composite's Initial Pseudo-state targets `H`, every entry uses the history: `msm::back::state_machine<S_, msm::back::AlwaysHistory>`, with the `H` row's default target as `initial_state` (see `Interrupt`). Otherwise only the transitions into `H` use it: `msm::back::state_machine<S_, msm::back::ShallowHistory<mpl::vector<Event::Ev1, ...>>>`, listing the Transition Trigger of every row whose Next State is `H`, while a transition into the composite itself starts at `initial_state` (see `Urgent`). |
 | Final State | `msm::front::terminate_state<>` at the top level. Inside a composite, use an `exit_pseudo_state<Ev>` and `S::exit_pt<...>` row (see `SimpleState`). |
 | Exit Point | `struct X : msm::front::exit_pseudo_state<Ev>` in the composite, plus a parent row from `S::exit_pt<S_::X>` (see `SimpleState`) |
 | Entry Point / transition into a substate | Target substate also inherits `msm::front::explicit_entry<0>`; the row targets `S::direct<S_::Sub>` (see `SimpleState`) |
@@ -181,7 +187,7 @@ Map each table Type as follows:
 | Internal transition (`Internal`) | Row with `none` as Target |
 | Deferred event (`Defer` / `Deferred`) | `Row<S, Event::Ev, none, Defer, none>`, plus `typedef int activate_deferred_events;` in the (sub)machine (see `SimpleState`) |
 
-Then rewrite `tests/test_<StateMachineName>.cpp`. Write at least one test per table row (target state reached, entry/exit/effect traces in order, every guard branch), plus the events a state must ignore. For a `Deferred` row, assert that the event has no effect in the deferring state and takes effect after the next transition (see `DeferingMechanism` in `SimpleState`'s tests). Update `main.cpp` for events that carry data and cannot be default-constructed.
+Then rewrite `tests/test_<StateMachineName>.cpp`. Write at least one test per table row (target state reached, entry/exit/effect traces in order, every guard branch), plus the events a state must ignore. For a `Deferred` row, assert that the event has no effect in the deferring state and takes effect after the next transition (see `DeferingMechanism` in `SimpleState`'s tests). For a history, assert that a transition into `H` restores the last active substate and that any other entry into the composite starts at its initial state (see the tests of `Urgent` and `Interrupt`). Update `main.cpp` for events that carry data and cannot be default-constructed.
 
 ---
 
@@ -214,6 +220,7 @@ The build exports `compile_commands.json` to `<StateMachineName>/build/`, where 
 | Logger access crashes inside a composite state | `fsm` there is the composite itself. Give its front-end a `Log* m_logger` and set `m_logger = fsm.m_logger;` in its `on_entry`, which runs before its substates are entered. |
 | Test expects `no_transition()` when a guard rejects | Boost.MSM ignores the event silently. Assert that the state and the trace are unchanged. |
 | Two choice branches can be true at once | Make the guards mutually exclusive; MSM evaluates rows bottom-up. |
+| A restored composite is expected to restore its nested composites too | Boost.MSM history is shallow: a nested composite without its own history policy restarts at its initial state. Give it its own policy only if the diagram has an `H` inside it. |
 | Querying states by `current_state()` ids | Ids depend on table order. Use flags and `is_flag_active<Flag>()`. |
 | Event posted from `main.cpp` has data members | Give it a default constructor or pass arguments: `post<Event::X>(args...)`. |
 

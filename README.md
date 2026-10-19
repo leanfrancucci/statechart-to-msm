@@ -54,6 +54,9 @@ the table**. Once you confirm, it scaffolds, implements, builds and tests a CMak
 `<StateMachineName>/`. In a non-interactive run (`claude -p`), say in the prompt that the table
 needs no confirmation, or the run stops after the table.
 
+Shallow history pseudo-states (`H`) are supported. Deep history (`H*`) is not, because Boost.MSM
+has no deep history: the skill points this out and asks whether to use a shallow history instead.
+
 ### Keeping statechart-to-msm up to date
 
 ```sh
@@ -214,7 +217,7 @@ This walk-through uses `SimpleState.png`, one of the reference diagrams shipped 
    ```
 
 5. **Implementation.** Guided by the reference examples that match the diagram's features
-   (hierarchy, choice pseudo-states, deferred events, ...), the skill writes the states,
+   (hierarchy, choice pseudo-states, deferred events, history, ...), the skill writes the states,
    actions, guards and transition table in `src/SimpleState.hpp`, and at least one unit test per
    table row.
 
