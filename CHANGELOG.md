@@ -3,6 +3,14 @@
 All notable changes to this plugin are documented here. This project uses
 [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/), [Semantic Versioning](https://semver.org/) and [Common Changelog](https://common-changelog.org/).
 
+## [1.3.0] - 2026-10-19
+
+### Added
+
+- Support shallow history pseudo-states (`H`), mapped to `ShallowHistory` or `AlwaysHistory` depending on how the composite is entered ([`a8ab81f`](https://github.com/leanfrancucci/statechart-to-msm/commit/a8ab81f))
+- Add the `Urgent` and `Interrupt` reference examples for history, each with its diagram, topology table and tests ([`a8ab81f`](https://github.com/leanfrancucci/statechart-to-msm/commit/a8ab81f))
+- Report deep history (`H*`) as unsupported by Boost.MSM and offer a shallow history instead ([`a8ab81f`](https://github.com/leanfrancucci/statechart-to-msm/commit/a8ab81f))
+
 ## [1.2.1] - 2026-10-14
 
 ### Added
@@ -45,6 +53,7 @@ All notable changes to this plugin are documented here. This project uses
 
 🌱 Initial release.
 
+[1.3.0]: https://github.com/leanfrancucci/statechart-to-msm/releases/tag/v1.3.0
 [1.2.1]: https://github.com/leanfrancucci/statechart-to-msm/releases/tag/v1.2.1
 [1.2.0]: https://github.com/leanfrancucci/statechart-to-msm/releases/tag/v1.2.0
 [1.1.0]: https://github.com/leanfrancucci/statechart-to-msm/releases/tag/v1.1.0
