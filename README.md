@@ -19,6 +19,7 @@ Claude Code plugin that generates production-ready Boost.MSM C++ code, unit test
 - [Plugins Integrations](#plugins-integrations)
   - [clangd-lsp](#clangd-lsp)
   - [SocratiCode](#socraticode)
+  - [CodeGraph](#codegraph)
 - [Example Workflow](#example-workflow)
 - [License](#license)
 
@@ -175,6 +176,26 @@ before starting (`codebase_index`), so the skill does not fall back to plain tex
 SocratiCode covers your project only. For the Boost.MSM API itself, the skill reads the
 installed Boost headers and the official documentation that matches their version (see
 `skills/generator/reference.md`).
+
+### CodeGraph
+
+[CodeGraph](https://github.com/colbymchenry/codegraph) builds a local knowledge graph of a
+codebase (symbols, call flows, callers, callees and the impact of a change) and serves it to
+Claude Code over MCP. It supports C and C++, so Claude can use it to explore your project when
+the generated state machine has to fit into it, and to navigate the generated code afterwards.
+It needs no Docker: the graph lives in a local SQLite database under `.codegraph/`. Install the
+CLI, wire it into Claude Code, and index each project:
+
+```sh
+npm i -g @colbymchenry/codegraph
+codegraph install
+cd <your-project> && codegraph init
+```
+
+`codegraph install` writes the MCP server configuration and a CodeGraph section in `CLAUDE.md`,
+and can add auto-allow permissions for its tools. Without Node.js, use the
+[install script](https://github.com/colbymchenry/codegraph#install) instead of `npm`. Restart
+Claude Code afterwards so the MCP server loads. The index stays in sync as files change.
 
 ## Example Workflow
 
