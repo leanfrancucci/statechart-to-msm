@@ -61,7 +61,7 @@ deferred events and shallow history. Before handing the project over, it formats
    /plugin install statechart-to-msm --marketplace https://github.com/leanfrancucci/statechart-to-msm.git
    ```
 
-   Append `#v1.4.0` to either source to pin a release. On earlier versions, or from your shell,
+   Append `#v1.4.1` to either source to pin a release. On earlier versions, or from your shell,
    add the marketplace first and then install:
 
    ```sh

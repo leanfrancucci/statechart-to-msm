@@ -3,6 +3,13 @@
 All notable changes to this plugin are documented here. This project uses
 [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/), [Semantic Versioning](https://semver.org/) and [Common Changelog](https://common-changelog.org/).
 
+## [1.4.1] - 2026-10-20
+
+### Added
+
+- Describe in the README what the skill delivers: the generated files, the supported statechart features, and which parts can be taken into an existing project ([`94be017`](https://github.com/leanfrancucci/statechart-to-msm/commit/94be017))
+- List every way the skill explores the user's project (SocratiCode, CodeGraph and `rg` as the fallback), including that it may start a SocratiCode index ([`94be017`](https://github.com/leanfrancucci/statechart-to-msm/commit/94be017))
+
 ## [1.4.0] - 2026-10-19
 
 ### Added
@@ -60,6 +67,7 @@ All notable changes to this plugin are documented here. This project uses
 
 🌱 Initial release.
 
+[1.4.1]: https://github.com/leanfrancucci/statechart-to-msm/releases/tag/v1.4.1
 [1.4.0]: https://github.com/leanfrancucci/statechart-to-msm/releases/tag/v1.4.0
 [1.3.0]: https://github.com/leanfrancucci/statechart-to-msm/releases/tag/v1.3.0
 [1.2.1]: https://github.com/leanfrancucci/statechart-to-msm/releases/tag/v1.2.1
