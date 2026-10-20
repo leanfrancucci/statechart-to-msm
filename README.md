@@ -11,6 +11,7 @@ Claude Code plugin that generates production-ready Boost.MSM C++ code, unit test
 
 ## Content
 
+- [What It Delivers](#what-it-delivers)
 - [Quick Start](#quick-start)
   - [Keeping statechart-to-msm up to date](#keeping-statechart-to-msm-up-to-date)
   - [Loading a local clone](#loading-a-local-clone)
@@ -22,6 +23,32 @@ Claude Code plugin that generates production-ready Boost.MSM C++ code, unit test
   - [CodeGraph](#codegraph)
 - [Example Workflow](#example-workflow)
 - [License](#license)
+
+## What It Delivers
+
+Give Claude an image of a UML state diagram and the plugin's `generator` skill turns it into a
+complete C++ project. Nothing is left as a stub: the project builds without warnings, its tests
+pass, and it runs. You can use it as it is, or take only the parts your own project needs: the
+state machine alone, or the state machine with its active object, together with their tests.
+
+For a diagram whose state machine is named `Blinky`, it writes `Blinky/` with:
+
+| File | Contents |
+| :--- | :--- |
+| `Blinky.md` | The topology table read from the diagram: one row per state and transition, which you confirm before any code is written |
+| `src/Blinky.hpp`, `src/Blinky.cpp` | The state machine in Boost.MSM's functor front-end: states, composite states, entry and exit actions, guards, transition actions and the transition tables |
+| `src/BlinkyActObj.hpp`, `src/BlinkyActObj.cpp` | An active object that owns the state machine and runs it in its own thread, fed by `post<Event>()` |
+| `src/Event.hpp` | One struct per trigger in the diagram |
+| `src/EventQueue.hpp`, `src/Log.hpp`, `src/Log.cpp` | A bounded, thread-safe event queue, used only by the active object, and an injectable logger, used by the state machine's actions and replaced by a recording logger in the tests |
+| `src/main.cpp` | An interactive application that maps one key per event, to drive the state machine by hand and watch its traces |
+| `tests/test_Blinky.cpp` | GoogleTest unit tests, at least one per row of the topology table |
+| `CMakeLists.txt`, `tests/CMakeLists.txt`, `.clang-format` | A CMake project (C++14, `-Wall -Wextra -Werror`) that exports `compile_commands.json` |
+
+The skill supports simple and composite (hierarchical) states, initial and final
+pseudo-states, entry and exit actions, guards, `else` branches and choice pseudo-states,
+transition actions, internal and self-transitions, direct entry into a substate, exit points,
+deferred events and shallow history. Before handing the project over, it formats the code with
+`clang-format`, builds it and runs the tests.
 
 ## Quick Start
 
@@ -55,8 +82,9 @@ the table**. Once you confirm, it scaffolds, implements, builds and tests a CMak
 `<StateMachineName>/`. In a non-interactive run (`claude -p`), say in the prompt that the table
 needs no confirmation, or the run stops after the table.
 
-Shallow history pseudo-states (`H`) are supported. Deep history (`H*`) is not, because Boost.MSM
-has no deep history: the skill points this out and asks whether to use a shallow history instead.
+> **Note:** Shallow history pseudo-states (`H`) are supported. Deep history (`H*`) is not,
+> because Boost.MSM has no deep history: the skill points this out and asks whether to use a
+> shallow history instead.
 
 ### Keeping statechart-to-msm up to date
 
@@ -104,7 +132,7 @@ The plugin contains one skill and no hooks, MCP servers or executables. It colle
 sends nothing to any service. Everything below runs through Claude Code's normal tools, so each
 command and file write goes through your permission settings.
 
-**Commands run on your machine**
+### Commands run on your machine
 
 | When | Command | Purpose |
 | :--- | :--- | :--- |
@@ -114,24 +142,30 @@ command and file write goes through your permission settings.
 | Step 5 | `cmake`, `cmake --build`, `ctest` | Configure, build and test the generated project |
 | Step 5 | `./<StateMachineName>/build/<StateMachineName>` | Run the generated interactive application |
 
-**Files written**
+### Files written
 
 Only inside `<StateMachineName>/` in the directory where you run it (or under `--output-dir`):
 the topology table `<StateMachineName>.md`, the generated sources and tests, and the `build/`
 directory. The scaffolding script refuses to overwrite files that already exist there unless it
 is run with `--force`.
 
-**Network access**
+### Network access
 
 | What | When | Source |
 | :--- | :--- | :--- |
 | GoogleTest v1.14.0 source archive | First CMake configure, only if GoogleTest is not installed | `https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz` |
 | Boost.MSM documentation | Only when the skill is unsure about a Boost.MSM API | `https://www.boost.org/doc/libs/<version>/libs/msm/doc/HTML/` |
 
-**Other plugins**
+### Other plugins
 
-If [SocratiCode](#socraticode) is installed, the skill uses its search tools to explore your
-project. SocratiCode's own behaviour, such as indexing, is described in its documentation.
+When the generated state machine has to fit into an existing project, the skill explores that
+project with the best tool available: [SocratiCode](#socraticode) for semantic search,
+[CodeGraph](#codegraph) for structural questions such as callers and the impact of a change,
+and, when neither is installed or indexed, plain text search with `rg`
+([ripgrep](https://github.com/BurntSushi/ripgrep)), which Claude Code's search tools use. All three
+only read your code, except that the skill may start a SocratiCode index (`codebase_index`)
+when your project has none. It never builds a CodeGraph index itself. The behaviour of
+SocratiCode and CodeGraph, such as indexing, is described in their documentation.
 
 ## Plugins Integrations
 
