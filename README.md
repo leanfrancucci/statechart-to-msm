@@ -4,8 +4,8 @@
 
 Claude Code plugin that generates production-ready Boost.MSM C++ code, unit tests and a CMake project from a statechart diagram.
 
-> **Coming to Anthropic's directory:** this plugin will be submitted to
-> [Anthropic's plugin directory](https://claude.ai/directory) in the near future. Until it is
+> **Coming to Anthropic's directory:** this plugin has been submitted to
+> [Anthropic's plugin directory](https://claude.ai/directory) and is awaiting review. Until it is
 > listed there, install it from this repository's own marketplace, as described in
 > [Quick Start](#quick-start).
 
